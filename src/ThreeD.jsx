@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { Box, Line, OrbitControls, Plane, QuadraticBezierLine, useHelper } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import { Vector3, AxesHelper,Quaternion } from 'three';
+import { Vector3, AxesHelper, Quaternion, Euler } from 'three';
 import { useLoader } from '@react-three/fiber'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -10,51 +10,50 @@ import { Raycaster, SkeletonHelper } from 'three';
 import { CCDIKSolver } from 'three/addons/animation/CCDIKSolver.js';
 import { MMDLoader } from 'three/addons/loaders/MMDLoader.js';
 import { MMDAnimationHelper } from 'three/addons/animation/MMDAnimationHelper.js';
-import {Pose } from 'kalidokit'
+import { Pose } from 'kalidokit'
 // import { socket } from './socket';
 
 let body = {}
 
-const bind = (model,body) => {
+const bind = (model, body) => {
   model.traverse(o => {
-    console.log(body)
-    if (o.isBone && o.name === 'mixamorigNeck') {
+    // console.log(o)
+    if (o.isBone && o.name === 'mixamorigNeck' && body.neck == null) {
       body.neck = o;
     }
-
-    else if (o.isBone && o.name === 'mixamorigHead') {
+    else if (o.isBone && o.name === 'mixamorigHead' && body.head == null) {
       body.head = o;
     }
-    else if (o.isBone && o.name === 'mixamorigRightShoulder') {
+    else if (o.isBone && o.name === 'mixamorigRightShoulder' && body.right_shoulder == null) {
       body.right_shoulder = o;
     }
-    else if (o.isBone && o.name === 'mixamorigLeftShoulder') {
+    else if (o.isBone && o.name === 'mixamorigLeftShoulder' && body.left_shoulder == null) {
       body.left_shoulder = o;
     }
 
-    else if (o.isBone && o.name === 'mixamorigRightArm') {
+    else if (o.isBone && o.name === 'mixamorigRightArm' && body.right_arm == null) {
       body.right_arm = o;
     }
-    else if (o.isBone && o.name === 'mixamorigRightForeArm') {
+    else if (o.isBone && o.name === 'mixamorigRightForeArm' && body.right_fore_arm == null) {
       body.right_fore_arm = o;
     }
-    else if (o.isBone && o.name === 'mixamorigLeftArm') {
+    else if (o.isBone && o.name === 'mixamorigLeftArm' && body.left_arm == null) {
       body.left_arm = o;
     }
-    else if (o.isBone && o.name === 'mixamorigLeftForeArm') {
+    else if (o.isBone && o.name === 'mixamorigLeftForeArm' && body.left_fore_arm == null) {
       body.left_fore_arm = o;
     }
 
-    else if (o.isBone && o.name === 'mixamorigRightHand') {
+    else if (o.isBone && o.name === 'mixamorigRightHand' && body.right_hand == null) {
       body.right_hand = o;
     }
-    else if (o.isBone && o.name === 'mixamorigLeftHand') {
+    else if (o.isBone && o.name === 'mixamorigLeftHand' && body.left_hand == null) {
       body.left_hand = o;
     }
-    else if (o.isBone && o.name === 'mixamorigRightHandIndex4') {
+    else if (o.isBone && o.name === 'mixamorigRightHandIndex4' && body.right_hand_index_4 == null) {
       body.right_hand_index_4 = o;
     }
-    else if (o.isBone && o.name === 'mixamorigRightThumb4') {
+    else if (o.isBone && o.name === 'mixamorigRightThumb4' && body.right_thumb_4 == null) {
       body.right_thumb_4 = o;
       body.right_thumb_4.removeFromParent();
       if (body.right_hand) {
@@ -63,7 +62,7 @@ const bind = (model,body) => {
       }
 
     }
-    else if (o.isBone && o.name === 'mixamorigLeftThumb4') {
+    else if (o.isBone && o.name === 'mixamorigLeftThumb4' && body.left_thumb_4 == null) {
       body.left_thumb_4 = o;
       body.left_thumb_4.removeFromParent();
       if (body.left_hand) {
@@ -73,138 +72,174 @@ const bind = (model,body) => {
 
     }
 
-    else if (o.isBone && o.name === 'mixamorigRightLeg') {
+    else if (o.isBone && o.name === 'mixamorigRightLeg' && body.right_leg == null) {
       body.right_leg = o;
     }
-    else if (o.isBone && o.name === 'mixamorigSpine1') {
+    else if (o.isBone && o.name === 'mixamorigSpine1' && body.spine_1 == null) {
       body.spine_1 = o;
     }
-    else if (o.isBone && o.name === 'mixamorigSpine2') {
+    else if (o.isBone && o.name === 'mixamorigSpine2' && body.spine_2 == null) {
       body.spine_2 = o;
     }
-    else if (o.isBone && o.name === 'mixamorigSpine') {
+    else if (o.isBone && o.name === 'mixamorigSpine' && body.spine == null) {
       body.spine = o;
     }
-    else if (o.isBone && o.name === 'mixamorigHips') {
+    else if (o.isBone && o.name === 'mixamorigHips' && body.hips == null) {
       body.hips = o;
     }
   }
+
   )
+  // body.hips = model.children[2]
+  // body.spine = body.hips.children[1]
+  // body.spine_1 = body.spine.children[1]
+  // body.spine_2 = body.spine_1.children[1]
+  // body.right_shoulder = body.spine_2.children[1]
+  // body.neck = body.spine_2.children[2]
+  // body.left_shoulder = body.spine_2.children[3]
+  // body.right_arm = body.right_shoulder.children[1]
+  // body.right_fore_arm = body.right_arm.children[1]
+  // body.right_hand = body.right_fore_arm.children[1]
+  // body.right_hand_index_4 = body.right_hand.children[1]
+  // body.right_thumb_4 = body.right_hand.children[2]
+  // body.left_arm = body.left_shoulder.children[1]
+  // body.left_fore_arm = body.left_arm.children[1]
+  // body.left_hand = body.left_fore_arm.children[1]
+  // body.left_hand_index_4 = body.left_hand.children[1]
+  // body.left_thumb_4 = body.left_hand.children[2]
+  // body.right_leg = body.hips.children[2]
+  // body.left_leg = body.hips.children[3]
+  // body.right_up_leg = body.right_leg.children[1]
+  // body.left_up_leg = body.left_leg.children[1]
+  // body.right_foot = body.right_up_leg.children[1]
+  // body.left_foot = body.left_up_leg.children[1]
+  // body.right_toe_base = body.right_foot.children[1]
+  // body.left_toe_base = body.left_foot.children[1]
+  // body.right_toe = body.right_toe_base.children[1]
+  // body.left_toe = body.left_toe_base.children[1]
+  // console.log(model.children[2])
+  // console.log(body)
 }
 
-const updateData= (body_pose) => {
- 
+const updateData = (body_pose) => {
+
   body.body_pose = body_pose;
 
   // console.log(body_pose)
   if (body.neck) {
-      // body.poseAngles(body.neck);
+    // poseAngles(body.neck);
   }
 
   if (body.right_arm) {
-      poseAngles(body.right_arm);
+    poseAngles(body.right_arm);
   }
   if (body.right_fore_arm) {
-      poseAngles(body.right_fore_arm);
+    poseAngles(body.right_fore_arm);
   }
   if (body.left_arm) {
-      poseAngles(body.left_arm);
+    poseAngles(body.left_arm);
   }
   if (body.left_fore_arm) {
-      poseAngles(body.left_fore_arm);
+    poseAngles(body.left_fore_arm);
   }
   if (body.right_hand) {
-      poseAngles(body.right_hand);
+    poseAngles(body.right_hand);
   }
   if (body.left_hand) {
-      poseAngles(body.left_hand);
+    poseAngles(body.left_hand);
   }
- 
+
 }
 
 const poseAngles = (joint) => {
   if (body.body_pose.length == 0) return;
-  console.log(joint)
-  const pose_left_shoulder = new Vector3(body.body_pose[11].x, -body.body_pose[11].y, -body.body_pose[11].z);
-  const pose_right_shoulder = new Vector3(body.body_pose[12].x, -body.body_pose[12].y, -body.body_pose[12].z);
-  const pose_left_elbow = new Vector3(body.body_pose[13].x, -body.body_pose[13].y, -body.body_pose[13].z);
-  const pose_right_elbow = new Vector3(body.body_pose[14].x, -body.body_pose[14].y, -body.body_pose[14].z);
-  const pose_left_hand = new Vector3(body.body_pose[15].x, -body.body_pose[15].y, -body.body_pose[15].z);
-  const pose_right_hand = new Vector3(body.body_pose[16].x, -body.body_pose[16].y, -body.body_pose[16].z);
-  const pose_left_hand_thumb_4 = new Vector3(body.body_pose[21].x, -body.body_pose[21].y, -body.body_pose[21].z);
-  const pose_right_hand_thumb_4 = new Vector3(body.body_pose[22].x, -body.body_pose[22].y, -body.body_pose[22].z);
-  const pose_left_hip = new Vector3(body.body_pose[23].x, -body.body_pose[23].y, -body.body_pose[23].z);
-  const pose_right_hip = new Vector3(body.body_pose[24].x, -body.body_pose[24].y, -body.body_pose[24].z);
- 
-  const pose_hips = ((new Vector3).copy(pose_left_hip)).add(pose_right_hip).multiplyScalar(0.5); 
-  const pose_spine_2 = ((new Vector3).copy(pose_right_shoulder)).add(pose_left_shoulder).multiplyScalar(0.5); //.multiplyScalar(0.728);
- 
+  // console.log(joint.name)
+  // console.log(body.body_pose)
+  const pose_left_shoulder = new Vector3(-body.body_pose[11].x, -body.body_pose[11].y, -body.body_pose[11].z);
+  const pose_right_shoulder = new Vector3(-body.body_pose[12].x, -body.body_pose[12].y, -body.body_pose[12].z);
+  const pose_left_elbow = new Vector3(-body.body_pose[13].x, -body.body_pose[13].y, -body.body_pose[13].z);
+  const pose_right_elbow = new Vector3(-body.body_pose[14].x, -body.body_pose[14].y, -body.body_pose[14].z);
+  const pose_left_hand = new Vector3(-body.body_pose[15].x, -body.body_pose[15].y, -body.body_pose[15].z);
+  const pose_right_hand = new Vector3(-body.body_pose[16].x, -body.body_pose[16].y, -body.body_pose[16].z);
+  const pose_left_hand_thumb_4 = new Vector3(-body.body_pose[21].x, -body.body_pose[21].y, -body.body_pose[21].z);
+  const pose_right_hand_thumb_4 = new Vector3(-body.body_pose[22].x, -body.body_pose[22].y, -body.body_pose[22].z);
+  const pose_left_hip = new Vector3(-body.body_pose[23].x, -body.body_pose[23].y, -body.body_pose[23].z);
+  const pose_right_hip = new Vector3(-body.body_pose[24].x, -body.body_pose[24].y, -body.body_pose[24].z);
+
+  const pose_hips = (new Vector3().copy(pose_left_hip)).add(pose_right_hip).multiplyScalar(0.5);
+  const pose_spine_2 = (new Vector3().copy(pose_right_shoulder)).add(pose_left_shoulder).multiplyScalar(0.5); //.multiplyScalar(0.728);
+  // console.log(pose_hips,pose_spine_2)
   var point_parent;
   var point_articulation;
   var point_child;
-  if (joint == body.neck) {
-      var point_parent = pose_hips;
-      var point_articulation = pose_spine_2;
-      var point_arm = pose_right_elbow;
+  // if (joint == body.neck) {
+  //   var point_parent = pose_hips;
+  //   var point_articulation = pose_spine_2;
+  //   var point_arm = pose_right_elbow;
 
-      const vec_parent = (new Vector3).subVectors(point_articulation, point_parent).multiplyScalar(0.375);
-      const vec_bone = (new Vector3).subVectors(point_arm, point_articulation);
+  //   const vec_parent = new Vector3().subVectors(point_articulation, point_parent).multiplyScalar(0.375);
+  //   const vec_bone = new Vector3().subVectors(point_arm, point_articulation);
 
-      setJointAnglesFromVects(joint, vec_bone, vec_parent);
+  //   setJointAnglesFromVects(joint, vec_bone, vec_parent);
+  // }
+  if (joint == body.right_arm) {
+    point_parent = pose_spine_2;
+    point_articulation = pose_right_shoulder;
+    point_child = pose_right_elbow;
   }
-  else if (joint == body.right_arm) {
-      point_parent = pose_spine_2;
-      point_articulation = pose_right_shoulder;
-      point_child = pose_right_elbow;
-  }
- 
+
   else if (joint == body.left_arm) {
-      point_parent = pose_spine_2;
-      point_articulation = pose_left_shoulder;
-      point_child = pose_left_elbow;
+    point_parent = pose_spine_2;
+    point_articulation = pose_left_shoulder;
+    point_child = pose_left_elbow;
   }
   else if (joint == body.right_fore_arm) {
-      point_parent = pose_right_shoulder;
-      point_articulation = pose_right_elbow;
-      point_child = pose_right_hand;
+    point_parent = pose_right_shoulder;
+    point_articulation = pose_right_elbow;
+    point_child = pose_right_hand;
   }
   else if (joint == body.left_fore_arm) {
-      point_parent = pose_left_shoulder;
-      point_articulation = pose_left_elbow;
-      point_child = pose_left_hand;
+    point_parent = pose_left_shoulder;
+    point_articulation = pose_left_elbow;
+    point_child = pose_left_hand;
   }
   else if (joint == body.right_hand) {
-      point_parent = pose_right_elbow;
-      point_articulation = pose_right_hand;
-      point_child = pose_right_hand_thumb_4;
+    point_parent = pose_right_elbow;
+    point_articulation = pose_right_hand;
+    point_child = pose_right_hand_thumb_4;
   }
   else if (joint == body.left_hand) {
-      point_parent = pose_left_elbow;
-      point_articulation = pose_left_hand;
-      point_child = pose_left_hand_thumb_4;
+    point_parent = pose_left_elbow;
+    point_articulation = pose_left_hand;
+    point_child = pose_left_hand_thumb_4;
   }
   const vec_parent = new Vector3().subVectors(point_articulation, point_parent);
   const vec_bone = new Vector3().subVectors(point_child, point_articulation);
   setJointAnglesFromVects(joint, vec_parent, vec_bone);
 }
 
-function setJointAnglesFromVects(joint, vec_parent_world, vec_child_world)
-{
-   const vec_child_local = joint.parent.clone().worldToLocal(vec_child_world.clone());
-   const vec_parent_local = joint.parent.clone().worldToLocal(vec_parent_world.clone());
-   var quat_pose_rot = new Quaternion();
-   quat_pose_rot.setFromUnitVectors(vec_parent_local.clone().normalize(), vec_child_local.clone().normalize());
-   joint.quaternion.rotateTowards(quat_pose_rot.clone(), 0.05);
+function setJointAnglesFromVects(joint, vec_parent_world, vec_child_world) {
+  const vec_child_local = joint.parent.clone().worldToLocal(vec_child_world.clone());
+  const vec_parent_local = joint.parent.clone().worldToLocal(vec_parent_world.clone());
+  var quat_pose_rot = new Quaternion();
+  quat_pose_rot.setFromUnitVectors(vec_parent_local.clone().normalize(), vec_child_local.clone().normalize());
+  joint.quaternion.rotateTowards(quat_pose_rot.clone(), 0.05);
 }
 
 
-function ThreeD({ cameraRef,debugRef }) {
+function ThreeD({ cameraRef, debugRef }) {
   // let boxRef = useRef()
 
+  const fullBody = useLoader(GLTFLoader, 'fullBody.glb')
+
+  const stacy = useLoader(GLTFLoader, 'stacy_lightweight.glb')
+  console.log(stacy)
   const fbx = useLoader(FBXLoader, 'vanguard.fbx')
-  console.log(fbx)
+  // console.log(fbx)
   let boneNameList = []
-  bind(fbx.getObjectByName("vanguard_Mesh"),body)
+  // console.log(fbx)
+  console.log(fbx)
+  console.log(body)
   // var helper_axes = new AxesHelper(80);
   // body.spine.add(helper_axes);
   fbx.getObjectByName("vanguard_Mesh").skeleton.bones.map((bone, index) => {
@@ -223,11 +258,12 @@ function ThreeD({ cameraRef,debugRef }) {
   //   animation: yahiko.animations[0]
   // })
 
-  const shirt = useLoader(GLTFLoader, 'riggedShirt.glb')
+  const shirt = useLoader(GLTFLoader, 'rigged.glb')
   // console.log(shirt)
   const watch = useLoader(GLTFLoader, 'watch.glb')
 
   let vector3 = new Vector3()
+  let position = new Vector3()
   const { camera, raycaster } = useThree()
   console.log(camera)
   console.log(raycaster)
@@ -257,7 +293,7 @@ function ThreeD({ cameraRef,debugRef }) {
     setInterval(() => {
       getPoses(detector)
       // socket.emit("predict", cameraRef.current.getScreenshot())
-      // console.log(poseRef.current)
+      // console.log(JSON.stringify(poseRef.current))
     }, 1000 / 10)
   }
 
@@ -300,8 +336,10 @@ function ThreeD({ cameraRef,debugRef }) {
 
   boneRefs3D[0] = [[0, 1], [1, 2], [2, 3], [3, 7], [0, 4], [4, 5], [5, 6], [6, 8], [9, 10], [11, 12], [11, 13], [13, 15], [15, 21], [15, 17], [15, 19], [17, 19], [12, 14], [14, 16], [16, 22], [16, 18], [16, 20], [18, 20], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [27, 29], [29, 31], [27, 31], [24, 26], [26, 28], [28, 30], [30, 32], [28, 32]]
 
-  console.log(boneRefs3D[0])
+  // console.log(boneRefs3D[0])
   useEffect(() => {
+    // modelRef.current.getObjectByName("mixamorigLeftArm").rotateX(Math.PI/2)
+
 
     // const iks = [{
     //   target: 14,
@@ -369,9 +407,12 @@ function ThreeD({ cameraRef,debugRef }) {
     // ];
 
 
+
     // solver = new CCDIKSolver( modelRef.current.getObjectByName("vanguard_Mesh"), iks );
     // socket.on('connect', console.log(socket.id))
     runEstimation()
+    bind(stacy.scene, body)
+
     bodyRefs2D.map((bodyRef, index) => {
       bodyRef.current.material.transparent = true
     })
@@ -379,11 +420,11 @@ function ThreeD({ cameraRef,debugRef }) {
     // planeRef.current.material.opacity = 0.2
 
     boneRefs3D[1].map((boneRef, index) => {
-      console.log(index)
-      console.log(boneRef)
+      // console.log(index)
+      // console.log(boneRef)
       boneRef.current.material.transparent = true
       boneRef.current.material.opacity = 0.5
-      console.log(boneRef.current)
+      // console.log(boneRef.current)
       boneRef.current.geometry.setFromPoints([bodyRefs[boneRefs3D[0][index][0]].current.position, bodyRefs[boneRefs3D[0][index][1]].current.position])
       boneRef.current.geometry.verticesNeedUpdate = true
       // boneRefs3D[1][index].current.geometry.setFromPoints([bodyRefs[boneRefs3D[0][index][0]].current.position, bodyRefs[boneRefs3D[0][index][1]].current.position])
@@ -409,7 +450,7 @@ function ThreeD({ cameraRef,debugRef }) {
     if (poseRef.current[0].keypoints3D == null) return
     // console.log(poseRef.current[0].keypoints3D)
     debugRef.current.innerText = JSON.stringify(poseRef.current[0].keypoints3D)
-    console.log(debugRef.current )
+    // console.log(debugRef.current)
 
     // updateData(poseRef.current[0].keypoints3D)
 
@@ -469,7 +510,7 @@ function ThreeD({ cameraRef,debugRef }) {
     rightHip.unproject(camera)
     let hipCenter = new Vector3((leftHip.x + rightHip.x) / 2, (leftHip.y + rightHip.y) / 2, (leftHip.z + rightHip.z) / 2)
     // hipCenter.z = 0
-    // threeDbody.current.position.copy(hipCenter)
+    threeDbody.current.position.copy(hipCenter)
 
 
     let leftShoulder = new Vector3(poseRef.current[0].keypoints[11].x - 0.5, poseRef.current[0].keypoints[11].y - 0.5, 0)
@@ -482,7 +523,7 @@ function ThreeD({ cameraRef,debugRef }) {
 
     let bodyScale = shoulderCenter.distanceTo(hipCenter)
 
-    // threeDbody.current.scale.setScalar(bodyScale * 2.01)
+    threeDbody.current.scale.setScalar(bodyScale * 2.01)
 
     // threeDbody.current.position.copy()
 
@@ -527,7 +568,7 @@ function ThreeD({ cameraRef,debugRef }) {
     // console.log(modelRef.current.getObjectByName("vanguard_Mesh").skeleton.bones)
     // console.log(bodyRefs[16].current.position)
 
-    //Binding
+    // Binding
     // updateData(poseRef.current[0].keypoints3D)
 
     // position.copy(bodyRefs[15].current.position)
@@ -537,15 +578,215 @@ function ThreeD({ cameraRef,debugRef }) {
     // console.log(bodyRefs[16].current.getWorldPosition())
     // console.log(modelRef.current.getObjectByName("vanguard_Mesh").skeleton.bones)
 
-    let position = new Vector3()
-    bodyRefs[15].current.getWorldPosition(position)
-    let localPos =  modelRef.current.getObjectByName("vanguard_Mesh").skeleton.bones[34].worldToLocal(position)
-    modelRef.current.getObjectByName("vanguard_Mesh").skeleton.bones[34].position.copy(localPos)
-    console.log(localPos)
+
+    // bodyRefs[15].current.getWorldPosition(position)
+    // let localPos = modelRef.current.getObjectByName("stacy").skeleton.bones[34].worldToLocal(position)
+    // console.log(localPos)
+    // modelRef.current.getObjectByName("stacy").skeleton.bones[34].position.set(localPos.x, localPos.y, localPos.z)
+    // console.log(localPos)
+
+
+    // let leftShoulderEst = new Vector3(-poseRef.current[0].keypoints3D[12].x, -poseRef.current[0].keypoints3D[12].y, -poseRef.current[0].keypoints3D[12].z)
+    // let leftElbEst = new Vector3(-poseRef.current[0].keypoints3D[14].x, -poseRef.current[0].keypoints3D[14].y, -poseRef.current[0].keypoints3D[14].z)
+    // let leftHandEst = new Vector3(-poseRef.current[0].keypoints3D[16].x, -poseRef.current[0].keypoints3D[16].y, -poseRef.current[0].keypoints3D[16].z)
+
+    // let leftShoulderModel = new Vector3().copy(modelRef.current.getObjectByName("mixamorigLeftArm").position)
+    // let leftElbModel = new Vector3().copy(modelRef.current.getObjectByName("mixamorigLeftForeArm").position)
+    // let leftHandModel = new Vector3().copy(modelRef.current.getObjectByName("mixamorigLeftHand").position)
+
+    // let leftShoulderModelGlobal = new Vector3().copy(leftShoulderModel);
+    // console.log(leftShoulderModelGlobal)
+    // modelRef.current.getObjectByName("mixamorigLeftArm").localToWorld(leftShoulderModelGlobal)
+    // console.log(leftShoulderModelGlobal)
+    // modelRef.current.getObjectByName("mixamorigLeftArm").position.copy(leftShoulderModelGlobal)
+
+    // let leftElbModelGlobal = new Vector3().copy(leftElbModel)
+    // modelRef.current.getObjectByName("mixamorigLeftForeArm").localToWorld(leftElbModelGlobal)
+    // console.log(leftElbModelGlobal)
+    // modelRef.current.getObjectByName("mixamorigLeftForeArm").position.copy(leftElbModelGlobal)
+    // let handPos = bodyRefs[16].current.position.clone()
+    // console.log(handPos)
+    // modelRef.current.getObjectByName("mixamorigLeftHand").clone().worldToLocal(handPos)
+    // console.log(handPos)
+    // modelRef.current.getObjectByName("mixamorigLeftHand").position.copy(handPos)
+
+
+    // let leftElbModelGlobal = new Vector3().copy(modelRef.current.getObjectByName("mixamorigRightForeArm").getWorldPosition())
+    // let leftHandModelGlobal = new Vector3().copy(modelRef.current.getObjectByName("mixamorigRightHand").getWorldPosition())
+
+    // console.log(leftShoulderEst, leftElbEst, leftHandEst)
+    // console.log(leftShoulderModel, leftElbModel, leftHandModel)
+    // console.log(leftShoulderModelGlobal, leftElbModelGlobal, leftHandModelGlobal)
 
 
 
+    //Stacy Movement
+
+    /*
+    // Angle Try
+    // Arm Joint
+    let leftArmJoint = modelRef.current.getObjectByName("mixamorigLeftArm")
+    let leftForeArmJoint = modelRef.current.getObjectByName("mixamorigLeftForeArm")
+    // console.log(leftArmJoint.position.clone())
+    // let leftArmJointPosGlobal = leftArmJoint.localToWorld(leftArmJoint.position.clone()).clone()
+    // let leftForeArmJointPosGlobal = leftForeArmJoint.localToWorld(leftForeArmJoint.position.clone()).clone()
+    // let curArmDir = new Vector3().subVectors(leftForeArmJointPosGlobal,leftArmJointPosGlobal).normalize()
+    // console.log(curArmDir)
+
+    let curArmEst = new Vector3(10,10,10)
+    let curArmDir = new Vector3()
+    let leftArmEst = bodyRefs[12].current.position.clone()
+    let leftForeArmEst = bodyRefs[14].current.position.clone()
+    let leftHandEst = bodyRefs[16].current.position.clone()
+
+    curArmDir.subVectors(leftForeArmEst,leftArmEst).normalize()
+    curArmEst.subVectors(leftHandEst,leftForeArmEst).normalize()
+
+    let quat = new Quaternion();
+    quat.setFromUnitVectors(curArmDir,curArmEst);
+    leftForeArmJoint.quaternion.rotateTowards(quat.clone(),0.05)
     
+    let rightArmEst = bodyRefs[11].current.position.clone()
+    curArmDir.subVectors(leftArmEst,rightArmEst).normalize()
+    curArmEst.subVectors(leftForeArmEst,leftArmEst).normalize()
+    let quat2 = new Quaternion();
+    quat2.setFromAxisAngle(curArmDir,-Math.PI)
+    quat.setFromUnitVectors(curArmDir,curArmEst);
+    // quat.multiply(quat2)
+    leftArmJoint.quaternion.rotateTowards(quat.clone(),0.1)
+
+    let rightForeArmEst = bodyRefs[13].current.position.clone()
+    let rightHandEst = bodyRefs[15].current.position.clone()
+    curArmDir.subVectors(rightForeArmEst,rightArmEst).normalize()
+    curArmEst.subVectors(rightHandEst,rightForeArmEst).normalize()
+    quat.setFromUnitVectors(curArmDir,curArmEst);
+    modelRef.current.getObjectByName("mixamorigRightForeArm").quaternion.rotateTowards(quat.clone(),0.1)
+    curArmDir.subVectors(rightArmEst,leftArmEst).normalize()
+    curArmEst.subVectors(rightForeArmEst,rightArmEst).normalize()
+    quat.setFromUnitVectors(curArmDir,curArmEst);
+    modelRef.current.getObjectByName("mixamorigRightArm").quaternion.rotateTowards(quat.clone(),0.1)
+
+    */
+
+    // Stacy End
+
+
+
+    // Mediapipe Styled Bone Trial rigged.glb
+    /*
+    let leftArmJoint = modelRef.current.getObjectByName("Bone008")
+    let leftForeArmJoint = modelRef.current.getObjectByName("Bone009")
+    // console.log(leftArmJoint)
+
+    let rightArmJoint = modelRef.current.getObjectByName("Bone007")
+
+    let rightArmEst = bodyRefs[12].current.position.clone()
+    let rightForeArmEst = bodyRefs[14].current.position.clone()
+    let rightHipEst = bodyRefs[24].current.position.clone()
+
+    let armForeArmDirEst = new Vector3().subVectors(rightForeArmEst, rightArmEst).normalize()
+    let armHipDirEst = new Vector3().subVectors(rightHipEst, rightArmEst).normalize()
+
+    let quat = new Quaternion();
+    quat.setFromUnitVectors(armHipDirEst, armForeArmDirEst);
+    rightArmJoint.setRotationFromQuaternion(quat.clone().conjugate())
+    rightArmJoint.rotateZ(Math.PI)
+
+
+    let leftArmEst = bodyRefs[11].current.position.clone()
+    let leftForeArmEst = bodyRefs[13].current.position.clone()
+    let leftHipEst = bodyRefs[25].current.position.clone()
+
+    armForeArmDirEst = new Vector3().subVectors(leftForeArmEst, leftArmEst).normalize().negate()
+    armHipDirEst = new Vector3().subVectors(leftHipEst, leftArmEst).normalize().negate()
+
+    // let leftArmJointPosGlobal = leftArmJoint.position.clone()
+    // let leftForeArmJointPosGlobal = leftForeArmJoint.position.clone()
+    // leftArmJoint.localToWorld(leftArmJointPosGlobal)
+    // leftForeArmJoint.localToWorld(leftForeArmJointPosGlobal)
+
+    // let armForeArmDirEst = new Vector3().subVectors(leftForeArmEst, leftArmEst).normalize()
+    // let armForeArmDirJoint = new Vector3().subVectors( leftForeArmJointPosGlobal ,leftArmJointPosGlobal).normalize()
+
+    quat.setFromUnitVectors(armHipDirEst, armForeArmDirEst);
+    leftArmJoint.setRotationFromQuaternion(quat.clone())
+    leftArmJoint.rotateZ(Math.PI)
+    // leftArmJoint.quaternion.rotateTowards(quat.clone(), 0.05)
+
+    */
+
+
+    // leftArmJoint.rotateX(Math.PI/4)
+
+
+
+    // setJointAnglesFromVects(leftForeArmJoint,curArmDir,curArmEst)
+
+    // function setJointAnglesFromVects(joint, vec_parent_world, vec_child_world) {
+    //   const vec_child_local = joint.parent.clone().worldToLocal(vec_child_world.clone());
+    //   const vec_parent_local = joint.parent.clone().worldToLocal(vec_parent_world.clone());
+    //   var quat_pose_rot = new Quaternion();
+    //   quat_pose_rot.setFromUnitVectors(vec_parent_local.clone().normalize(), vec_child_local.clone().normalize());
+    //   joint.quaternion.rotateTowards(quat_pose_rot.clone(), 0.05);
+    // }
+
+
+
+    // Mediapipe styled bone fullBody.glb
+
+    let quat = new Quaternion();
+
+    let rightArmJoint = modelRef.current.getObjectByName("upper_armR")
+    let rightArmEst = bodyRefs[11].current.position.clone()
+
+    let rightForeArmEst = bodyRefs[13].current.position.clone()
+    let rightHipEst = bodyRefs[23].current.position.clone()
+
+    let armForeArmDirEst = new Vector3().subVectors(rightForeArmEst, rightArmEst).normalize()
+    let armHipDirEst = new Vector3().subVectors(rightHipEst, rightArmEst).normalize().negate()
+
+    quat.setFromUnitVectors(armHipDirEst, armForeArmDirEst);
+    rightArmJoint.setRotationFromQuaternion(quat.clone().conjugate())
+    // rightArmJoint.rotateY(Math.PI/2)
+    rightArmJoint.rotateOnWorldAxis(armHipDirEst, Math.PI / 2)
+
+
+    console.log(rightArmEst)
+    // rightArmJoint.position.set(0, 0, 0)
+
+    let leftArmJoint = modelRef.current.getObjectByName("upper_armL")
+    let leftArmEst = bodyRefs[12].current.position.clone()
+    let leftForeArmEst = bodyRefs[14].current.position.clone()
+    let leftHipEst = bodyRefs[24].current.position.clone()
+
+    armForeArmDirEst = new Vector3().subVectors(leftForeArmEst, leftArmEst).normalize()
+    armHipDirEst = new Vector3().subVectors(leftHipEst, leftArmEst).normalize().negate()
+
+    quat.setFromUnitVectors(armHipDirEst, armForeArmDirEst);
+    leftArmJoint.setRotationFromQuaternion(quat.clone().conjugate())
+    // leftArmJoint.rotateY(Math.PI/2)
+    leftArmJoint.rotateOnWorldAxis(armHipDirEst, -Math.PI / 2)
+
+    let leftElbJoint = modelRef.current.getObjectByName("forearmL")
+    let leftWristEst = bodyRefs[16].current.position.clone()
+
+    let wristElbEst = new Vector3().subVectors(leftWristEst, leftForeArmEst).normalize()
+    quat.setFromUnitVectors(armForeArmDirEst,wristElbEst)
+    leftElbJoint.setRotationFromQuaternion(quat.clone().conjugate())
+    // leftElbJoint.rotateOnWorldAxis(armForeArmDirEst, -Math.PI / 2)
+
+    let rightElbJoint = modelRef.current.getObjectByName("forearmR")
+    let rightWristEst = bodyRefs[15].current.position.clone()
+
+    armForeArmDirEst = new Vector3().subVectors(rightForeArmEst, rightArmEst).normalize()
+
+    wristElbEst = new Vector3().subVectors(rightWristEst, rightForeArmEst).normalize()
+    quat.setFromUnitVectors(armForeArmDirEst,wristElbEst)
+    rightElbJoint.setRotationFromQuaternion(quat.clone().conjugate())
+    // rightElbJoint.rotateOnWorldAxis(armForeArmDirEst, -Math.PI / 2)
+
+
+
     for (let i = 0; i < 35; i++) {
       if (poseRef.current[0].keypoints3D[i] == null) return
       if (poseRef.current[0].keypoints3D[i].x == null) return
@@ -609,7 +850,7 @@ function ThreeD({ cameraRef,debugRef }) {
             )
           })
         }
-        <primitive scale={[0.01, 0.01, 0.01]} position={[0, -1, 0]} object={fbx} ref={modelRef} />
+        <primitive scale={[0.8, 0.8, 0.8]} position={[0, 0, 0]} object={fullBody.scene} ref={modelRef} />
       </group>
       {
         bodyRefs2D.map((bodyRef, index) => {
